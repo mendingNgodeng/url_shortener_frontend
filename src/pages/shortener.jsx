@@ -70,7 +70,6 @@ export default function Shortener() {
           {row.user?.username}
         </span>
       ),
-      
     },
     {
       name: 'Short Code',
@@ -92,7 +91,7 @@ export default function Shortener() {
     {
       name: 'Clicks',
       selector: (row) => row.clicks,
-      sortable:true
+      sortable: true,
     },
     {
       name: 'Expired At',
@@ -108,7 +107,7 @@ export default function Shortener() {
             })
           : '-',
       grow: 3,
-      sortable:true
+      sortable: true,
     },
     {
       name: 'Action',
@@ -117,7 +116,11 @@ export default function Shortener() {
       cell: (row) => (
         <div className="flex gap-3 justify-center">
           <button
-            onClick={() => handleDelete(row.id)}
+            onClick={() =>
+              toastConfirm('Yakin ingin hapus URL ini?', () =>
+                handleDelete(row.id)
+              )
+            }
             className="p-1 hover:bg-red-700/40 rounded"
           >
             <Trash2 className="w-5 h-5 text-red-500" />
