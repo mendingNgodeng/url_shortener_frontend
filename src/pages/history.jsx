@@ -42,6 +42,12 @@ export default function History() {
     },
 
     { name: 'IP', selector: (row) => row.ip ?? '-' },
+    { name: 'Country', selector: (row) => row.country ?? '-' },
+    { name: 'City', selector: (row) => row.city ?? '-' },
+    { name: 'device', selector: (row) => row.device ?? '-' },
+    { name: 'Os', selector: (row) => row.os ?? '-' },
+    { name: 'Browser', selector: (row) => row.browser ?? '-' },
+    { name: 'Referer', selector: (row) => row.referer ?? '-' },
     { name: 'OS / Browser', selector: (row) => row.userAgent ?? '-', grow: 2 },
 
     {
