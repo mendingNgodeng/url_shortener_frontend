@@ -37,8 +37,16 @@ export default function History() {
 
     {
       name: 'Original URL',
-      selector: (row) => row.url?.originalUrl ?? '-',
-      grow: 2,
+      selector: (row) => row.originalUrl,
+      grow: 0,
+      cell: (row) => (
+        <span
+          title={row.url?.originalUrl}
+          className="truncate block max-w-[200px]"
+        >
+          {row.url?.originalUrl}
+        </span>
+      ),
     },
 
     { name: 'IP', selector: (row) => row.ip ?? '-' },
