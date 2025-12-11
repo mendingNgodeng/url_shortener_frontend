@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/navbar';
 import Sidebar from '../components/sidebar';
 import DataTable from 'react-data-table-component';
-import { Copy, Pencil, Trash2 } from 'lucide-react';
+import { Copy, Pencil, Trash2, QrCode } from 'lucide-react';
 import LinkModal from '../components/linkmodal';
 import { toastSuccess, toastInfo, toastError } from '../utils/toast.js';
+import QRModal from '../components/qrmodal';
 
 export default function Shortener() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -14,6 +15,9 @@ export default function Shortener() {
   const [modalOpen, setModalOpen] = useState(false);
   const API_URL = import.meta.env.VITE_API_URL;
 
+  // qr code
+  const [qrOpen, setQrOpen] = useState(false);
+  const [qrUrl, setQrUrl] = useState('');
   useEffect(() => {
     fetch(`${API_URL}/urls`, {
       headers: {
@@ -114,8 +118,45 @@ export default function Shortener() {
           >
             <Trash2 className="w-5 h-5 text-red-500" />
           </button>
+
+          <button
+            onClick={() => {
+              const full = `${API_URL}/urls/s/${row.shortCode}`;
+              setQrUrl(full);
+              setQrOpen(true);
+            }}
+            className="p-1 hover:bg-blue-700/40 rounded"
+          >
+            <QrCode className="w-5 h-5 text-blue-400" />
+          </button>
         </div>
       ),
+    },
+    {
+      name: 'Status',
+      selector: (row) => row.expirationDate,
+      width: '120px',
+      cell: (row) => {
+        if (!row.expirationDate) {
+          return (
+            <span className="px-2 py-1 text-xs rounded bg-green-700/30 text-green-400">
+              Active
+            </span>
+          );
+        }
+
+        const isExpired = new Date(row.expirationDate) < new Date();
+
+        return isExpired ? (
+          <span className="px-2 py-1 text-xs rounded bg-red-700/30 text-red-400">
+            Expired
+          </span>
+        ) : (
+          <span className="px-2 py-1 text-xs rounded bg-green-700/30 text-green-400">
+            Active
+          </span>
+        );
+      },
     },
   ];
 
@@ -238,6 +279,8 @@ export default function Shortener() {
         onClose={() => setModalOpen(false)}
         onCreated={() => loadData()}
       />
+
+      <QRModal isOpen={qrOpen} onClose={() => setQrOpen(false)} url={qrUrl} />
     </div>
   );
 }
