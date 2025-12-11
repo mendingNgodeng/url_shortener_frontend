@@ -3,7 +3,7 @@ import Navbar from '../components/navbar';
 import Sidebar from '../components/sidebar';
 import { Eye, EyeOff } from 'lucide-react';
 import { jwtDecode } from 'jwt-decode';
-import { toastSuccess, toastInfo, toastError } from '../utils/toast.js';
+import { toastSuccess, toastInfo, toastError } from '../utils/toast.jsx';
 
 export default function Profile() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

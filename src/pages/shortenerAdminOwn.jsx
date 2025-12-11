@@ -6,7 +6,12 @@ import { Copy, Pencil, Trash2, QrCode } from 'lucide-react';
 import QRModal from '../components/qrmodal';
 import LinkModal from '../components/linkmodal';
 import { jwtDecode } from 'jwt-decode';
-import { toastSuccess, toastInfo, toastError } from '../utils/toast.js';
+import {
+  toastSuccess,
+  toastInfo,
+  toastError,
+  toastConfirm,
+} from '../utils/toast.jsx';
 
 export default function Shortener() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -39,7 +44,8 @@ export default function Shortener() {
   const filteredLinks = links.filter(
     (row) =>
       row.originalUrl.toLowerCase().includes(search.toLowerCase()) ||
-      row.shortCode.toLowerCase().includes(search.toLowerCase())
+      row.shortCode.toLowerCase().includes(search.toLowerCase()) ||
+      row.user?.username.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleCopy = (shortCode) => {
@@ -50,7 +56,7 @@ export default function Shortener() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Yakin ingin menghapus URL ini?')) return;
+    // if (!confirm('Yakin ingin menghapus URL ini?')) return;
 
     try {
       const res = await fetch(`${API_URL}/urls/${id}`, {
@@ -90,7 +96,7 @@ export default function Shortener() {
     {
       name: 'Pemilik',
       selector: (row) => user.username || '-',
-      grow: 1,
+      grow: 0,
     },
     {
       name: 'Short Code',
@@ -106,11 +112,13 @@ export default function Shortener() {
           </button>
         </div>
       ),
+      grow: 0,
     },
     {
       name: 'Clicks',
       selector: (row) => row.clicks,
-      width: '80px',
+      // width: '80px',
+      sortable: true,
     },
     {
       name: 'Expired At',
@@ -125,14 +133,20 @@ export default function Shortener() {
               second: '2-digit',
             })
           : '-',
+      grow: 2,
+      sortable: true,
     },
     {
       name: 'Action',
-      width: '120px',
+      // width: '120px',
       cell: (row) => (
         <div className="flex gap-3 justify-center">
           <button
-            onClick={() => handleDelete(row.id)}
+            onClick={() =>
+              toastConfirm('Yakin ingin hapus URL ini?', () =>
+                handleDelete(row.id)
+              )
+            }
             className="p-1 hover:bg-red-700/40 rounded"
           >
             <Trash2 className="w-5 h-5 text-red-500" />
@@ -153,7 +167,7 @@ export default function Shortener() {
     {
       name: 'Status',
       selector: (row) => row.expirationDate,
-      width: '120px',
+      // width: '120px',
       cell: (row) => {
         if (!row.expirationDate) {
           return (

@@ -3,23 +3,22 @@ import Navbar from '../components/navbar';
 import Sidebar from '../components/sidebar';
 import DataTable from 'react-data-table-component';
 import { Copy, Pencil, Trash2, QrCode } from 'lucide-react';
-import LinkModal from '../components/linkmodal';
-import { toastSuccess, toastInfo, toastError } from '../utils/toast.jsx';
-import QRModal from '../components/qrmodal';
+import {
+  toastSuccess,
+  toastInfo,
+  toastError,
+  toastConfirm,
+} from '../utils/toast.jsx';
 
-export default function Shortener() {
+export default function Users() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [links, setLinks] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // qr code
-  const [qrOpen, setQrOpen] = useState(false);
-  const [qrUrl, setQrUrl] = useState('');
   useEffect(() => {
-    fetch(`${API_URL}/urls`, {
+    fetch(`${API_URL}/users`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
@@ -34,71 +33,43 @@ export default function Shortener() {
 
   const filteredLinks = links.filter(
     (row) =>
-      row.originalUrl.toLowerCase().includes(search.toLowerCase()) ||
-      row.shortCode.toLowerCase().includes(search.toLowerCase()) ||
-      row.user?.username.toLowerCase().includes(search.toLowerCase())
+      row.username.toLowerCase().includes(search.toLowerCase()) ||
+      row.createdAt.toLowerCase().includes(search.toLowerCase())
   );
-
-  const handleCopy = (shortCode) => {
-    const full = `${API_URL}/urls/s/${shortCode}`;
-    navigator.clipboard.writeText(full);
-    // alert('URL copied!');
-    toastInfo('URL dicopy!');
-  };
 
   const columns = [
     {
-      name: 'Original URL',
-      selector: (row) => row.originalUrl,
+      name: 'Username',
+      selector: (row) => row.username,
       grow: 0,
       cell: (row) => (
-        <span title={row.originalUrl} className="truncate block max-w-[200px]">
-          {row.originalUrl}
+        <span title={row.username} className="truncate block max-w-[200px]">
+          {row.username}
         </span>
       ),
     },
     {
-      name: 'Pemilik',
-      selector: (row) => row.user?.username || 'Milik mu',
+      name: 'Role',
+      selector: (row) => row.role || 'Milik mu',
       wrap: true,
       grow: 0,
       cell: (row) => (
-        <span
-          title={row.user?.username}
-          className="truncate block max-w-[200px]"
-        >
-          {row.user?.username}
+        <span title={row.role} className="truncate block max-w-[200px]">
+          {row.role}
         </span>
       ),
-      
+    },
+
+    {
+      name: 'Jumlah links',
+      selector: (row) => row._count.urls,
+      sortable: true,
     },
     {
-      name: 'Short Code',
-      selector: (row) => row.shortCode,
-      cell: (row) => (
-        <div className="flex items-center gap-2">
-          <span title={row.shortCode} className="truncate block max-w-[200px]">
-            {row.shortCode}
-          </span>
-          <button
-            onClick={() => handleCopy(row.shortCode)}
-            className="p-1 hover:bg-gray-700 rounded"
-          >
-            <Copy className="w-4 h-4 text-gray-300" />
-          </button>
-        </div>
-      ),
-    },
-    {
-      name: 'Clicks',
-      selector: (row) => row.clicks,
-      sortable:true
-    },
-    {
-      name: 'Expired At',
+      name: 'Daftar Pada',
       selector: (row) =>
-        row.expirationDate
-          ? new Date(row.expirationDate).toLocaleString('id-ID', {
+        row.createdAt
+          ? new Date(row.createdAt).toLocaleString('id-ID', {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric',
@@ -107,60 +78,26 @@ export default function Shortener() {
               second: '2-digit',
             })
           : '-',
-      grow: 3,
-      sortable:true
+      grow: 1,
+      sortable: true,
     },
     {
       name: 'Action',
       wrap: true,
-      grow: 0,
       cell: (row) => (
         <div className="flex gap-3 justify-center">
           <button
-            onClick={() => handleDelete(row.id)}
+            onClick={() =>
+              toastConfirm('Yakin Ingin hapus user ini?', () =>
+                handleDelete(row.id)
+              )
+            }
             className="p-1 hover:bg-red-700/40 rounded"
           >
             <Trash2 className="w-5 h-5 text-red-500" />
           </button>
-
-          <button
-            onClick={() => {
-              const full = `${API_URL}/urls/s/${row.shortCode}`;
-              setQrUrl(full);
-              setQrOpen(true);
-            }}
-            className="p-1 hover:bg-blue-700/40 rounded"
-          >
-            <QrCode className="w-5 h-5 text-blue-400" />
-          </button>
         </div>
       ),
-    },
-    {
-      name: 'Status',
-      selector: (row) => row.expirationDate,
-      width: '120px',
-      cell: (row) => {
-        if (!row.expirationDate) {
-          return (
-            <span className="px-2 py-1 text-xs rounded bg-green-700/30 text-green-400">
-              Active
-            </span>
-          );
-        }
-
-        const isExpired = new Date(row.expirationDate) < new Date();
-
-        return isExpired ? (
-          <span className="px-2 py-1 text-xs rounded bg-red-700/30 text-red-400">
-            Expired
-          </span>
-        ) : (
-          <span className="px-2 py-1 text-xs rounded bg-green-700/30 text-green-400">
-            Active
-          </span>
-        );
-      },
     },
   ];
 
@@ -191,10 +128,13 @@ export default function Shortener() {
   };
   // delete
   const handleDelete = async (id) => {
-    if (!confirm('Yakin ingin menghapus URL ini?')) return;
+    // toastInfo('Klik OK untuk menghapus user ini...');
+
+    // const ok = confirm('Yakin ingin menghapus user ini?');
+    // if (!ok) return;
 
     try {
-      const res = await fetch(`${API_URL}/urls/${id}`, {
+      const res = await fetch(`${API_URL}/users/a/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -204,11 +144,11 @@ export default function Shortener() {
       const result = await res.json();
 
       if (res.ok) {
-        toastSuccess('URL berhasil dihapus!');
-        // alert('URL berhasil dihapus!');
+        toastSuccess('User berhasil dihapus!');
+        // alert('User berhasil dihapus!');
         loadData(); // refresh table
       } else {
-        toastError('URL gagal dihapus!');
+        toastError('User gagal dihapus!');
         alert(result.error || 'Gagal menghapus URL');
       }
     } catch (err) {
@@ -218,7 +158,7 @@ export default function Shortener() {
   };
   // muat data
   const loadData = async () => {
-    const res = await fetch(`${API_URL}/urls`, {
+    const res = await fetch(`${API_URL}/users`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
@@ -236,7 +176,9 @@ export default function Shortener() {
         <Navbar setSidebarOpen={setSidebarOpen} />
 
         <div className="p-6">
-          <h1 className="text-3xl font-bold text-white mb-6">URL Shortener</h1>
+          <h1 className="text-3xl font-bold text-white mb-6">
+            Users Table Data
+          </h1>
           {/* <button
             onClick={() => setModalOpen(true)}
             className="mb-4 px-4 py-2 rounded-lg bg-cyan-600 text-white font-semibold hover:bg-cyan-700 transition"
@@ -274,17 +216,7 @@ export default function Shortener() {
       <button
         onClick={() => setModalOpen(true)}
         className="fixed bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center text-3xl font-bold hover:bg-blue-700 transition shadow-2xl border border-blue-400/40"
-      >
-        +
-      </button>
-
-      <LinkModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onCreated={() => loadData()}
-      />
-
-      <QRModal isOpen={qrOpen} onClose={() => setQrOpen(false)} url={qrUrl} />
+      ></button>
     </div>
   );
 }

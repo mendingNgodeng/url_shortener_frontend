@@ -10,6 +10,7 @@ import ProtectedRoute from './auth/ProtectedRoute';
 import { AuthProvider } from './auth/AuthContext';
 import ShortenedAdmin from './pages/shortenerAdminOwn';
 import Notfound from './pages/notfound';
+import Users from './pages/users';
 
 export default function App() {
   return (
@@ -44,6 +45,14 @@ export default function App() {
             }
           />
           <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <Users />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/history"
             element={
               <ProtectedRoute>
@@ -67,7 +76,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-       
         </Routes>
       </AuthProvider>
     </BrowserRouter>

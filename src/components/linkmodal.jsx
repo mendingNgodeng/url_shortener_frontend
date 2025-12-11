@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { toastSuccess, toastInfo, toastError } from '../utils/toast.js';
+import { toastSuccess, toastInfo, toastError } from '../utils/toast.jsx';
 
 export default function LinkModal({ isOpen, onClose, onCreated }) {
   const [originalUrl, setOriginalUrl] = useState('');

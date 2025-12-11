@@ -92,6 +92,18 @@ export default function Sidebar({ open, setOpen }) {
               </Link>
             </li>
           )}
+          {user?.role === 'admin' && (
+            <li>
+              <Link
+                to="/users"
+                className={`block px-3 py-2 rounded-lg font-medium transition ${isActive(
+                  '/users'
+                )}`}
+              >
+                users
+              </Link>
+            </li>
+          )}
           <li>
             <Link
               to="/history"

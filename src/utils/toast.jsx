@@ -23,3 +23,13 @@ export const toastWarning = (msg) => {
     duration: 3000,
   });
 };
+
+export const toastConfirm = (message, onConfirm) => {
+  toast(message, {
+    description: 'Tindakan ini tidak bisa dibatalkan.',
+    action: {
+      label: 'Hapus',
+      onClick: onConfirm,
+    },
+  });
+};

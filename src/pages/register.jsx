@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { toastSuccess, toastError } from '../utils/toast.js';
+import { toastSuccess, toastError } from '../utils/toast.jsx';
 
 export default function Register() {
   const API_URL = import.meta.env.VITE_API_URL;
