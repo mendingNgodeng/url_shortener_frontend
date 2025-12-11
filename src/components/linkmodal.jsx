@@ -41,7 +41,13 @@ export default function LinkModal({ isOpen, onClose, onCreated }) {
 
       // error dari ZOD (status 400)
       if (res.status === 400) {
-        setErrors(data.errors);
+        if (data.errors) {
+          // Error dari Zod
+          setErrors(data.errors);
+        } else if (data.message) {
+          // Error custom backend (blocked URL)
+          setGlobalError(data.message);
+        }
         return;
       }
 
