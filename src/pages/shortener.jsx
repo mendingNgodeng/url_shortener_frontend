@@ -4,7 +4,12 @@ import Sidebar from '../components/sidebar';
 import DataTable from 'react-data-table-component';
 import { Copy, Pencil, Trash2, QrCode } from 'lucide-react';
 import LinkModal from '../components/linkmodal';
-import { toastSuccess, toastInfo, toastError } from '../utils/toast.jsx';
+import {
+  toastSuccess,
+  toastInfo,
+  toastError,
+  toastConfirm,
+} from '../utils/toast.jsx';
 import QRModal from '../components/qrmodal';
 
 export default function Shortener() {
@@ -87,6 +92,7 @@ export default function Shortener() {
           </button>
         </div>
       ),
+      grow: 1,
     },
     {
       name: 'Clicks',
@@ -106,7 +112,7 @@ export default function Shortener() {
               second: '2-digit',
             })
           : '-',
-      grow: 3,
+      grow: 1,
       sortable: true,
     },
     {
@@ -194,7 +200,7 @@ export default function Shortener() {
   };
   // delete
   const handleDelete = async (id) => {
-    if (!confirm('Yakin ingin menghapus URL ini?')) return;
+    // if (!confirm('Yakin ingin menghapus URL ini?')) return;
 
     try {
       const res = await fetch(`${API_URL}/urls/${id}`, {
@@ -212,7 +218,7 @@ export default function Shortener() {
         loadData(); // refresh table
       } else {
         toastError('URL gagal dihapus!');
-        alert(result.error || 'Gagal menghapus URL');
+        // alert(result.error || 'Gagal menghapus URL');
       }
     } catch (err) {
       console.error(err);

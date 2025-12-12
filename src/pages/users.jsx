@@ -64,6 +64,7 @@ export default function Users() {
       name: 'Jumlah links',
       selector: (row) => row._count.urls,
       sortable: true,
+      grow: 1,
     },
     {
       name: 'Daftar Pada',
@@ -78,7 +79,7 @@ export default function Users() {
               second: '2-digit',
             })
           : '-',
-      grow: 1,
+      grow: 3,
       sortable: true,
     },
     {

@@ -100,7 +100,7 @@ export default function Sidebar({ open, setOpen }) {
                   '/users'
                 )}`}
               >
-                users
+                Users
               </Link>
             </li>
           )}

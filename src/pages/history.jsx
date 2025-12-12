@@ -6,6 +6,7 @@ import DataTable from 'react-data-table-component';
 export default function History() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [history, setHistory] = useState([]);
+  const [search, setSearch] = useState('');
   const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
@@ -20,6 +21,23 @@ export default function History() {
       })
       .catch((err) => console.error(err));
   }, []);
+
+  // search data
+  const filteredHistory = history.filter((row) => {
+    const keyword = search.toLowerCase();
+
+    return (
+      row.url?.shortCode?.toLowerCase().includes(keyword) ||
+      row.url?.originalUrl?.toLowerCase().includes(keyword) ||
+      row.ip?.toLowerCase().includes(keyword) ||
+      row.country?.toLowerCase().includes(keyword) ||
+      row.city?.toLowerCase().includes(keyword) ||
+      row.device?.toLowerCase().includes(keyword) ||
+      row.browser?.toLowerCase().includes(keyword) ||
+      row.os?.toLowerCase().includes(keyword) ||
+      row.userAgent?.toLowerCase().includes(keyword)
+    );
+  });
 
   const columns = [
     { name: 'No', selector: (row, index) => index + 1, width: '60px' },
@@ -64,6 +82,7 @@ export default function History() {
         row.clickedAt
           ? new Date(row.clickedAt).toLocaleDateString('id-ID')
           : '-',
+      sortable: true,
     },
   ];
 
@@ -104,20 +123,27 @@ export default function History() {
           <h1 className="text-3xl font-bold mb-6 text-white">
             History Akses Short URL
           </h1>
+          {/* search input */}
+          <input
+            type="text"
+            placeholder="Cari history..."
+            className="mb-3 w-full p-3 rounded bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
           <div className="bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700">
             <div className="w-full overflow-x-auto">
               <div className="min-w-max">
                 <DataTable
                   columns={columns}
-                  data={history}
+                  data={filteredHistory}
                   pagination
                   highlightOnHover
                   striped
                   customStyles={customStyles}
                   responsive={false}
-                  fixedHeader
-                  fixedHeaderScrollHeight="450px"
+                  // fixedHeader
+                  fixedHeaderScrollHeight="800px"
                 />
               </div>
             </div>
