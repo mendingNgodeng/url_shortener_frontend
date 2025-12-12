@@ -222,7 +222,8 @@ export default function Shortener() {
       }
     } catch (err) {
       console.error(err);
-      alert('Terjadi kesalahan saat menghapus');
+      // toastError('Terjadi kesalahan saat menghapus');
+      toastError('Tidak bisa hapus URL milik orang lain!');
     }
   };
   // muat data
