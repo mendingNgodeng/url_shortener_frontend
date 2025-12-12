@@ -159,11 +159,9 @@ export default function Dashboard() {
                 ⭐
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Link Favorit</p>
+                <p className="text-gray-400 text-sm">ShortLink Favorit</p>
                 <h2 className="text-lg font-semibold text-yellow-400 break-words overflow-hidden max-w-xs">
-                  {stats.topLink
-                    ? `${API_URL}/` + stats.topLink.shortCode
-                    : 'Tidak ada'}
+                  {stats.topLink ? stats.topLink.shortCode : 'Tidak ada'}
                 </h2>
               </div>
             </div>
