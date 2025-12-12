@@ -56,7 +56,7 @@ export default function History() {
     {
       name: 'Original URL',
       selector: (row) => row.originalUrl,
-      grow: 0,
+      grow: 1,
       cell: (row) => (
         <span
           title={row.url?.originalUrl}

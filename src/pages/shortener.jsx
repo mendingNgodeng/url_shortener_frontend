@@ -92,7 +92,7 @@ export default function Shortener() {
           </button>
         </div>
       ),
-      grow: 1,
+      grow: 3,
     },
     {
       name: 'Clicks',
