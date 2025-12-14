@@ -4,6 +4,7 @@ import Sidebar from '../components/sidebar';
 import { Eye, EyeOff } from 'lucide-react';
 import { jwtDecode } from 'jwt-decode';
 import { toastSuccess, toastInfo, toastError } from '../utils/toast.jsx';
+import { useAuth } from '../auth/AuthContext';
 
 export default function Profile() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -38,9 +39,7 @@ export default function Profile() {
   //     setErrors(data.errors || {});
   //     return;
   //   }
-
-  const token = localStorage.getItem('token');
-  const user = jwtDecode(token); // dapatkan id dari token
+  const { token, user } = useAuth();
   const API_URL = import.meta.env.VITE_API_URL;
 
   const handlePhotoChange = (e) => {

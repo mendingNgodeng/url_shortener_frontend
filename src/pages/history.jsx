@@ -2,17 +2,19 @@ import Navbar from '../components/navbar';
 import Sidebar from '../components/sidebar';
 import { useState, useEffect } from 'react';
 import DataTable from 'react-data-table-component';
+import { useAuth } from '../auth/AuthContext';
 
 export default function History() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [history, setHistory] = useState([]);
   const [search, setSearch] = useState('');
   const API_URL = import.meta.env.VITE_API_URL;
+  const { token, user } = useAuth();
 
   useEffect(() => {
     fetch(`${API_URL}/history/me`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => res.json())

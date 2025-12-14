@@ -10,14 +10,14 @@ export default function Login() {
   // console.log('API:', API_URL);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState([]);
 
   async function handleLogin(e) {
     e.preventDefault();
-    setError(''); // clear error
+    setError([]);
 
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -26,29 +26,43 @@ export default function Login() {
         }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) throw new Error(data.error || 'Login gagal');
+      // RATE LIMIT
+      if (res.status === 429) {
+        const retry = data.retryAfter || 60;
+        setError([`Terlalu banyak percobaan. Coba lagi dalam ${retry} detik.`]);
+        toastError('Terlalu banyak request');
+        return;
+      }
 
-      login(data.token); // === simpan token!
+      // VALIDATION
+      if (!res.ok) {
+        if (data.errors) {
+          const allErrors = Object.values(data.errors).flat();
+          setError(allErrors);
+        } else {
+          setError([data.error || 'Login gagal']);
+        }
+        return;
+      }
 
+      login(data.token);
       navigate('/dashboard');
       toastSuccess('Login berhasil!');
     } catch (err) {
-      toastError('Masukan Username/Email dan password yang benar :)');
-      setError(err.message);
+      toastError('Terjadi kesalahan');
+      setError(['Gagal menghubungi server']);
     }
   }
 
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-gray-100 overflow-hidden">
-      {/* Background Animasi Bergerak */}
       <div
         className="absolute inset-0 bg-gradient-to-r from-blue-600 via-cyan-600 to-indigo-700 
         animate-[gradientMove_8s_ease_infinite] bg-[length:300%_300%] opacity-60"
       ></div>
 
-      {/* isi login tetap sama */}
       <div className="relative bg-white p-8 rounded shadow w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
 

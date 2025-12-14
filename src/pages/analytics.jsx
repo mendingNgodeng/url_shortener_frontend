@@ -13,6 +13,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { useAuth } from '../auth/AuthContext';
 
 export default function Analytics() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -30,14 +31,13 @@ export default function Analytics() {
   const [endDate, setEndDate] = useState('');
 
   const API_URL = import.meta.env.VITE_API_URL;
+  const { token, user } = useAuth();
 
   const COLORS = ['#3B82F6', '#06B6D4', '#F59E0B', '#10B981', '#EC4899'];
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
-
         const res = await fetch(`${API_URL}/history/me`, {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -5,6 +5,7 @@ import DataTable from 'react-data-table-component';
 import { Copy, Pencil, Trash2, QrCode } from 'lucide-react';
 import QRModal from '../components/qrmodal';
 import LinkModal from '../components/linkmodal';
+import { useAuth } from '../auth/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 import {
   toastSuccess,
@@ -20,26 +21,57 @@ export default function Shortener() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const token = localStorage.getItem('token');
-  const user = jwtDecode(token);
+  // const token = localStorage.getItem('token');
+  // const user = jwtDecode(token);
+
+  const { token, user } = useAuth();
   const userId = user.id;
   const API_URL = import.meta.env.VITE_API_URL;
 
   const [qrOpen, setQrOpen] = useState(false);
   const [qrUrl, setQrUrl] = useState('');
   useEffect(() => {
-    fetch(`${API_URL}/urls/admin/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setLinks(data);
-        setLoading(false);
-      })
-      .catch((err) => console.error(err));
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/urls/admin/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      // RATE LIMIT
+
+      if (res.status === 401) {
+        toastError('Session habis');
+        return;
+      }
+
+      if (res.status === 429) {
+        toastError(`Terlalu sering request! Tunggu ${data.retryAfter}s`);
+        setLoading(false);
+        return;
+      }
+
+      if (!res.ok) {
+        toastError('Gagal mengambil data URL');
+        setLoading(false);
+        return;
+      }
+
+      setLinks(data);
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      toastError('Server error saat load URL');
+      setLoading(false);
+    }
+  };
 
   const filteredLinks = links.filter(
     (row) =>
@@ -62,20 +94,23 @@ export default function Shortener() {
       const res = await fetch(`${API_URL}/urls/${id}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       const result = await res.json();
-
-      if (res.ok) {
-        // alert('URL berhasil dihapus!');
-        toastSuccess('URL dihapus!');
-        loadData(); // refresh table
-      } else {
-        // alert(result.error || 'Gagal menghapus URL');
-        toastError('URL gagal dihapus!');
+      if (res.status === 429) {
+        toastError(`Terlalu sering hapus URL! Tunggu ${data.retryAfter}s`);
+        return;
       }
+
+      if (!res.ok) {
+        toastError(data.message || 'URL gagal dihapus!');
+        return;
+      }
+
+      toastSuccess('URL dihapus!');
+      loadData();
     } catch (err) {
       console.error(err);
       alert('Terjadi kesalahan saat menghapus');
@@ -218,16 +253,16 @@ export default function Shortener() {
     },
   };
 
-  const loadData = async () => {
-    const res = await fetch(`${API_URL}/urls/admin/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
+  // const loadData = async () => {
+  //   const res = await fetch(`${API_URL}/urls/admin/${userId}`, {
+  //     headers: {
+  //       Authorization: `Bearer ${localStorage.getItem('token')}`,
+  //     },
+  //   });
 
-    const data = await res.json();
-    setLinks(data);
-  };
+  //   const data = await res.json();
+  //   setLinks(data);
+  // };
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-[#0F172A] to-[#1E3A8A]">
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />

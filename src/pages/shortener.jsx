@@ -11,6 +11,7 @@ import {
   toastConfirm,
 } from '../utils/toast.jsx';
 import QRModal from '../components/qrmodal';
+import { useAuth } from '../auth/AuthContext';
 
 export default function Shortener() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,18 +24,39 @@ export default function Shortener() {
   // qr code
   const [qrOpen, setQrOpen] = useState(false);
   const [qrUrl, setQrUrl] = useState('');
+  const { token, user } = useAuth();
+
   useEffect(() => {
-    fetch(`${API_URL}/urls`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    const load = async () => {
+      try {
+        const res = await fetch(`${API_URL}/urls`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          if (res.status === 429) {
+            toastError(
+              `Terlalu banyak request! Coba lagi dalam ${data.retryAfter}s`
+            );
+          } else {
+            toastError(data.error || 'Gagal memuat data');
+          }
+          return;
+        }
+
         setLinks(data);
+      } catch (err) {
+        toastError('Server tidak merespon');
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => console.error(err));
+      }
+    };
+
+    load();
   }, []);
 
   const filteredLinks = links.filter(
@@ -200,8 +222,6 @@ export default function Shortener() {
   };
   // delete
   const handleDelete = async (id) => {
-    // if (!confirm('Yakin ingin menghapus URL ini?')) return;
-
     try {
       const res = await fetch(`${API_URL}/urls/${id}`, {
         method: 'DELETE',
@@ -212,18 +232,22 @@ export default function Shortener() {
 
       const result = await res.json();
 
-      if (res.ok) {
-        toastSuccess('URL berhasil dihapus!');
-        // alert('URL berhasil dihapus!');
-        loadData(); // refresh table
-      } else {
-        toastError('URL gagal dihapus!');
-        // alert(result.error || 'Gagal menghapus URL');
+      if (!res.ok) {
+        //adjusted for RL
+        if (res.status === 429) {
+          toastError(`Terlalu sering hapus URL! Tunggu ${result.retryAfter}s`);
+        } else {
+          toastError(result.error || 'Gagal menghapus URL');
+        }
+        return;
       }
+      if (res.status === 403) {
+        toastError(`tidak bisa hapus URL orang lain!`);
+      }
+      toastSuccess('URL berhasil dihapus!');
+      loadData();
     } catch (err) {
-      console.error(err);
-      // toastError('Terjadi kesalahan saat menghapus');
-      toastError('Tidak bisa hapus URL milik orang lain!');
+      toastError('Terjadi kesalahan jaringan');
     }
   };
   // muat data

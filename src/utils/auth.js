@@ -1,5 +1,5 @@
 import { jwtDecode } from 'jwt-decode';
-
+// unused
 export function getUserFromToken() {
   const token = localStorage.getItem('token');
   if (!token) return null;

@@ -9,6 +9,7 @@ import {
   toastError,
   toastConfirm,
 } from '../utils/toast.jsx';
+import { useAuth } from '../auth/AuthContext';
 
 export default function Users() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,20 +17,43 @@ export default function Users() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const API_URL = import.meta.env.VITE_API_URL;
+  const { token, user } = useAuth();
 
   useEffect(() => {
-    fetch(`${API_URL}/users`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setLinks(data);
-        setLoading(false);
-      })
-      .catch((err) => console.error(err));
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const res = await fetch(`${API_URL}/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      // 🔴 RATE LIMIT
+      if (res.status === 429) {
+        toastError(`Terlalu sering request 🚫 Tunggu ${data.retryAfter}s`);
+        setLoading(false);
+        return;
+      }
+
+      if (!res.ok) {
+        toastError('Gagal mengambil data user');
+        setLoading(false);
+        return;
+      }
+
+      setLinks(data);
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      toastError('Server error saat mengambil data user');
+      setLoading(false);
+    }
+  };
 
   const filteredLinks = links.filter(
     (row) =>
@@ -138,36 +162,42 @@ export default function Users() {
       const res = await fetch(`${API_URL}/users/a/${id}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       const result = await res.json();
 
-      if (res.ok) {
-        toastSuccess('User berhasil dihapus!');
-        // alert('User berhasil dihapus!');
-        loadData(); // refresh table
-      } else {
-        toastError('User gagal dihapus!');
-        alert(result.error || 'Gagal menghapus URL');
+      if (res.status === 429) {
+        toastError(
+          `Terlalu sering menghapus user 🚫 Tunggu ${data.retryAfter}s`
+        );
+        return;
       }
+
+      if (!res.ok) {
+        toastError(data.message || 'User gagal dihapus!');
+        return;
+      }
+
+      toastSuccess('User berhasil dihapus!');
+      loadData();
     } catch (err) {
       console.error(err);
       alert('Terjadi kesalahan saat menghapus');
     }
   };
   // muat data
-  const loadData = async () => {
-    const res = await fetch(`${API_URL}/users`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
+  // const loadData = async () => {
+  //   const res = await fetch(`${API_URL}/users`, {
+  //     headers: {
+  //       Authorization: `Bearer ${localStorage.getItem('token')}`,
+  //     },
+  //   });
 
-    const data = await res.json();
-    setLinks(data);
-  };
+  //   const data = await res.json();
+  //   setLinks(data);
+  // };
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-[#0F172A] to-[#1E3A8A]">
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />

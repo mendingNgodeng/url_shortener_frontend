@@ -17,12 +17,6 @@ export default function Register() {
     setError('');
     setSuccess('');
 
-    // const cleanData = {
-    //   username: username.trim().toString(),
-    //   email: email.trim().toLowerCase().toString(),
-    //   password: password.trim().toString(),
-    // };
-    // console.log('KIRIM =>', cleanData);
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -36,10 +30,22 @@ export default function Register() {
 
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 429) {
+          const retry = data.retryAfter || 60;
+          setError([
+            `Terlalu banyak percobaan. Coba lagi dalam ${retry} detik.`,
+          ]);
+          toastError('Terlalu banyak request');
+          return;
+        }
+
+        // VALIDATION ZOD
         if (data.errors) {
           const allErrors = Object.values(data.errors).flat();
-          setError(allErrors); // SIMPAN SEBAGAI ARRAY
-        } else {
+          setError(allErrors);
+          return;
+
+          // ERROR LAIN
           setError([data.message || 'Register gagal']);
         }
         return;

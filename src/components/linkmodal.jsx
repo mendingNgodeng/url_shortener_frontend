@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { toastSuccess, toastInfo, toastError } from '../utils/toast.jsx';
-
+import { useAuth } from '../auth/AuthContext.jsx';
 export default function LinkModal({ isOpen, onClose, onCreated }) {
   const [originalUrl, setOriginalUrl] = useState('');
   const [shortCode, setShortCode] = useState('');
@@ -11,8 +11,8 @@ export default function LinkModal({ isOpen, onClose, onCreated }) {
   const [errors, setErrors] = useState({});
   const API_URL = import.meta.env.VITE_API_URL;
 
-  const token = localStorage.getItem('token');
-  const user = jwtDecode(token);
+  const { token, user } = useAuth();
+
   const userId = user.id;
   // const role = localStorage.getItem('role');
   // const url =
@@ -28,7 +28,7 @@ export default function LinkModal({ isOpen, onClose, onCreated }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           originalUrl,
@@ -38,6 +38,13 @@ export default function LinkModal({ isOpen, onClose, onCreated }) {
       });
 
       const data = await res.json();
+
+      if (res.status === 429) {
+        toastError(
+          `Terlalu sering membuat URL! Coba lagi dalam ${data.retryAfter}s`
+        );
+        return;
+      }
 
       // error dari ZOD (status 400)
       if (res.status === 400) {
